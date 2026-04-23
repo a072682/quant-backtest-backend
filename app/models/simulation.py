@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 from sqlalchemy import String, Float, Date, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
-from app.db.base import Base
+from app.core.database import Base
 
 
 class SimulationTrade(Base):

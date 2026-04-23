@@ -1,19 +1,18 @@
 import uuid
 from datetime import date
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 import yfinance as yf
 
 from app.models.simulation import SimulationTrade
 from app.services.backtest_service import _format_ticker
 
 
-async def create_simulation_buy(
+def create_simulation_buy(
     stock_code: str,
     stock_name: str,
     price: float,
     score: float,
-    db: AsyncSession,
+    db: Session,
 ) -> SimulationTrade:
     shares = round(10000 / price, 4)
     trade = SimulationTrade(
@@ -29,19 +28,17 @@ async def create_simulation_buy(
         status="open",
     )
     db.add(trade)
-    await db.commit()
-    await db.refresh(trade)
+    db.commit()
+    db.refresh(trade)
     return trade
 
 
-async def check_and_close_positions(db: AsyncSession) -> list[SimulationTrade]:
-    result = await db.execute(
-        select(SimulationTrade).where(
-            SimulationTrade.action == "buy",
-            SimulationTrade.status == "open",
-        )
+def check_and_close_positions(db: Session) -> list[SimulationTrade]:
+    open_positions = (
+        db.query(SimulationTrade)
+        .filter(SimulationTrade.action == "buy", SimulationTrade.status == "open")
+        .all()
     )
-    open_positions = result.scalars().all()
 
     closed: list[SimulationTrade] = []
     for pos in open_positions:
@@ -78,18 +75,18 @@ async def check_and_close_positions(db: AsyncSession) -> list[SimulationTrade]:
             profit_pct=profit_pct,
         )
         db.add(sell)
-        await db.commit()
-        await db.refresh(sell)
+        db.commit()
         closed.append(sell)
 
     return closed
 
 
-async def get_simulation_summary(db: AsyncSession) -> dict:
-    result = await db.execute(
-        select(SimulationTrade).where(SimulationTrade.action == "sell")
+def get_simulation_summary(db: Session) -> dict:
+    sells = (
+        db.query(SimulationTrade)
+        .filter(SimulationTrade.action == "sell")
+        .all()
     )
-    sells = result.scalars().all()
     total = len(sells)
     if total == 0:
         return {"total_trades": 0, "win_rate": 0.0, "total_profit": 0.0}
