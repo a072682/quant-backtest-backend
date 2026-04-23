@@ -1,13 +1,13 @@
 import pandas as pd
 import yfinance as yf
 from datetime import date
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.backtest_service import _format_ticker, _calc_score
 from app.services.simulation_service import create_simulation_buy
 
 
-def create_today_signal(stock_code: str, db: Session) -> dict:
+async def create_today_signal(stock_code: str, db: AsyncSession) -> dict:
     ticker_symbol = _format_ticker(stock_code)
     ticker = yf.Ticker(ticker_symbol)
 
@@ -35,7 +35,7 @@ def create_today_signal(stock_code: str, db: Session) -> dict:
     price = float(today_row["Close"])
 
     if score >= 5:
-        create_simulation_buy(
+        await create_simulation_buy(
             stock_code=stock_code,
             stock_name=stock_name,
             price=price,

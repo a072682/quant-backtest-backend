@@ -25,6 +25,7 @@ env/
 
 # Logs
 *.log
+simulation.db
 
 # OS
 .DS_Store
