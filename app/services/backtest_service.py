@@ -173,6 +173,7 @@ def run_backtest(
             "win_rate": round(win_rate, 2),
             "max_drawdown": round(max_drawdown, 2),
             "total_trades": len(trades),
+            "final_capital": round(final_equity, 2),
         },
         "equity_curve": equity_curve,
         "trades": trades,
